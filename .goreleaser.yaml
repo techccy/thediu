@@ -50,17 +50,17 @@ changelog:
 release:
   github:
     owner: techccy
-    name: diu-assistant
+    name: thediu
 
 brews:
-  - name: diu
+  - name: thediu
     tap:
       owner: techccy
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     folder: Formula
-    homepage: "https://github.com/techccy/diu-assistant"
+    homepage: "https://github.com/techccy/thediu"
     description: "AI-powered command line assistant that analyzes terminal errors and provides solutions"
     license: "MIT"
     skip_upload: false
