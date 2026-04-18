@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
+
+	"github.com/ccy-ai/ccy-assistant/internal/config"
 )
 
 type Client struct {
 	apiKey  string
 	baseURL string
+	model   string
 }
 
 type Message struct {
@@ -31,18 +33,12 @@ type OpenAIResponse struct {
 	Choices []Choice `json:"choices"`
 }
 
-func NewClient() *Client {
+func NewClient(cfg *config.Config) *Client {
 	return &Client{
-		apiKey:  os.Getenv("CCY_API_KEY"),
-		baseURL: getBaseURL(),
+		apiKey:  cfg.APIKey,
+		baseURL: cfg.BaseURL,
+		model:   cfg.Model,
 	}
-}
-
-func getBaseURL() string {
-	if url := os.Getenv("CCY_API_BASE"); url != "" {
-		return url
-	}
-	return "https://api.openai.com/v1"
 }
 
 func (c *Client) SendRequest(failedCommand, errorMessage string) (string, error) {
@@ -72,15 +68,11 @@ Example:
 	}
 
 	reqBody := Request{
-		Model: os.Getenv("CCY_MODEL"),
+		Model: c.model,
 		Messages: []Message{
 			{Role: "system", Content: systemPrompt},
 			{Role: "user", Content: userContent},
 		},
-	}
-
-	if reqBody.Model == "" {
-		reqBody.Model = "gpt-4"
 	}
 
 	jsonBody, err := json.Marshal(reqBody)

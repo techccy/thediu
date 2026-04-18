@@ -1,1 +1,11 @@
+# Environments
+.env
+.env.local
+.env.*.local
+
+# Go binaries
+/ccy-core
+/bin/
+
+# PRD
 PRD/
