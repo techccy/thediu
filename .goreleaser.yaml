@@ -53,24 +53,40 @@ release:
     name: thediu
 
 brews:
-  - name: thediu
-    tap:
+  - name: diu # 【关键修改1】强制命名为 diu，这样用户才能 brew install diu
+    repository: # 【关键修改2】GoReleaser v2 标准用法是 repository 而不是 tap
       owner: techccy
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    folder: Formula
+      
+    directory: Formula # 【关键修改3】使用 directory 而不是 folder
+    
     homepage: "https://github.com/techccy/thediu"
     description: "AI-powered command line assistant that analyzes terminal errors and provides solutions"
     license: "MIT"
     skip_upload: false
+    
     test: |
       system "#{bin}/diu-core --version"
-    install: |
-      bin.install "diu-core"
-      prefix.install "post_install.sh" => "diu-post-install.sh"
-    post_install: |
-      system "echo", "Run 'diu-core --init' to initialize the shell integration"
+      
+    # 【关键修改4】完全删掉自定义的 install 块！
+    # GoReleaser 非常聪明，它会自动识别你 builds 里的二进制名字，
+    # 并自动生成 bin.install "diu-core"，不需要你手动写。
+    
+    # 【关键修改5】将提示语转移到 caveats
+    # caveats 是 Homebrew 专门用来在安装结束后给用户高亮展示提示语的区块
+    caveats: |
+      ======================================================
+      🚀 Diu 智能命令行安装成功！
+      
+      请运行以下命令初始化你的 shell 环境集成：
+      
+      diu-core --init
+      
+      然后在你的工作目录准备好 .env 文件即可开始使用。
+      ======================================================
+
     dependencies:
       - name: go
         type: optional
