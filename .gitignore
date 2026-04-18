@@ -12,6 +12,6 @@ PRD/
 PHASE*
 test_*
 .DS_Store
-build/
+build/ccy
 ccy-assistant
 ccy-core-*
