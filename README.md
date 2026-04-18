@@ -15,6 +15,24 @@
 
 ## 快速开始
 
+### 使用 Homebrew 安装（推荐）
+
+```bash
+# 添加 Tap 仓库
+brew tap techccy/tap
+
+# 安装 DIU
+brew install diu
+
+# 初始化 Shell 集成
+diu-core --init >> ~/.zshrc  # zsh
+diu-core --init >> ~/.bashrc # bash
+
+# 重新加载 shell 配置
+source ~/.zshrc  # zsh
+source ~/.bashrc # bash
+```
+
 ### 从源码安装
 
 ```bash
@@ -78,7 +96,7 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o diu-core-windows-amd64.exe
 
 ### 从 Release 安装
 
-1. 访问 [GitHub Release 页面](https://github.com/ccy-ai/diu-assistant/releases)
+1. 访问 [GitHub Release 页面](https://github.com/techccy/diu-assistant/releases)
 2. 根据你的系统下载对应的二进制文件：
 
 | 平台 | 架构 | 文件名 |
@@ -187,7 +205,7 @@ diu-core --help      # 显示帮助信息
 - [x] **Phase 2**: Shell 劫持与上下文捕获
 - [x] **Phase 3**: 优雅的终端交互界面 (TUI)
 - [x] **Phase 4**: CI/CD 自动化构建与多平台支持
-- [ ] **Phase 5**: Homebrew 一键安装
+- [x] **Phase 5**: Homebrew 一键安装
 
 ## 项目结构
 

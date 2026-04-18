@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ccy-ai/diu-assistant/internal/config"
-	"github.com/ccy-ai/diu-assistant/internal/context"
-	"github.com/ccy-ai/diu-assistant/internal/provider"
-	"github.com/ccy-ai/diu-assistant/internal/shellinit"
-	"github.com/ccy-ai/diu-assistant/internal/tui"
+	"github.com/techccy/diu-assistant/internal/config"
+	"github.com/techccy/diu-assistant/internal/context"
+	"github.com/techccy/diu-assistant/internal/provider"
+	"github.com/techccy/diu-assistant/internal/shellinit"
+	"github.com/techccy/diu-assistant/internal/tui"
 )
 
 type AnalysisResponse struct {
@@ -86,19 +86,35 @@ func main() {
 	workDir, _ := os.Getwd()
 	additionalContext, _ := ctxEngine.Collect(workDir, errorMessage)
 
-	systemPrompt := `You are a Linux/Unix system expert. Your task is to analyze the failed command and error message, then provide a corrected command.
+	systemPrompt := `You are an elite developer and system administrator. Your task is to analyze a failed terminal command and its error output, then provide the most direct command to fix the issue.
 
-You must respond with a valid JSON object only, without any markdown code blocks or extra text. The JSON must have this exact format:
+CRITICAL RULES:
+1. Shell Typos: If it's a misspelled command, correct it.
+2. System Tools: If a CLI tool is missing, provide the install command (e.g., apt/brew).
+3. Missing Dependencies (Programming Languages): If the error is a missing library (e.g., Python 'ModuleNotFoundError', Node 'Cannot find module'), your command MUST be the package manager installation command (e.g., 'pip install <pkg>', 'npm install <pkg>'). 
+   * IMPORTANT: Be smart about package names. For example, in Python, 'cv2' is 'opencv-python', 'PIL' is 'Pillow', 'yaml' is 'PyYAML'.
+4. Chaining: You can use '&&' to chain the fix and re-run the original command if appropriate.
+
+You must respond with a valid JSON object ONLY, without any markdown code blocks (no ` + "```json" + `) or extra text. 
+
+FORMAT:
 {
-  "analysis": "Brief explanation of the error cause in one sentence",
-  "command": "The corrected command that should be executed"
+  "analysis": "Brief explanation of the error cause in one sentence (in Chinese)",
+  "command": "The exact terminal command to execute"
 }
 
-Example:
-{
-  "analysis": "The command 'pushu' is not a valid git subcommand",
-  "command": "git push origin main"
-}`
+EXAMPLES:
+Input command: "git pushu"
+Input error: "git: 'pushu' is not a git command"
+Output: {"analysis": "Git命令拼写错误，应为push", "command": "git push"}
+
+Input command: "python main.py"
+Input error: "ModuleNotFoundError: No module named 'requests'"
+Output: {"analysis": "Python运行缺少requests依赖包", "command": "pip install requests && python main.py"}
+
+Input command: "python script.py"
+Input error: "ModuleNotFoundError: No module named 'cv2'"
+Output: {"analysis": "缺少OpenCV库，Python中对应的包名为opencv-python", "command": "pip install opencv-python && python script.py"}`
 
 	var userContent string
 	if errorMessage != "" {

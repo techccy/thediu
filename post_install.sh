@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "🎉 DIU Assistant 安装完成！"
+echo ""
+echo "📝 下一步："
+echo "  1. 运行以下命令初始化 Shell 集成："
+echo "     diu-core --init >> ~/.zshrc  # zsh"
+echo "     diu-core --init >> ~/.bashrc # bash"
+echo ""
+echo "  2. 重新加载 Shell 配置："
+echo "     source ~/.zshrc  # zsh"
+echo "     source ~/.bashrc # bash"
+echo ""
+echo "  3. 配置 AI 提供商（可选）："
+echo "     diu-core --config"
+echo ""
+echo "📚 更多信息请访问: https://github.com/techccy/diu-assistant"

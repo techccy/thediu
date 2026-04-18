@@ -1,0 +1,76 @@
+project_name: diu
+version: 2
+before:
+  hooks:
+    - go mod tidy
+    - go mod download
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+      - -X main.BuildTime={{.Date}}
+    main: ./main.go
+    binary: diu-core
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+
+release:
+  github:
+    owner: techccy
+    name: diu-assistant
+
+brews:
+  - name: diu
+    tap:
+      owner: techccy
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    folder: Formula
+    homepage: "https://github.com/techccy/diu-assistant"
+    description: "AI-powered command line assistant that analyzes terminal errors and provides solutions"
+    license: "MIT"
+    skip_upload: false
+    test: |
+      system "#{bin}/diu-core --version"
+    install: |
+      bin.install "diu-core"
+      prefix.install "post_install.sh" => "diu-post-install.sh"
+    post_install: |
+      system "echo", "Run 'diu-core --init' to initialize the shell integration"
+    dependencies:
+      - name: go
+        type: optional

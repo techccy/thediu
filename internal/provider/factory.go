@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ccy-ai/diu-assistant/internal/config"
+	"github.com/techccy/diu-assistant/internal/config"
 )
 
 type ProviderFactory struct{}
