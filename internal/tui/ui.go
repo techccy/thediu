@@ -13,6 +13,11 @@ import (
 
 type UI struct {
 	styles *styles
+	cfg    interface {
+		GetProviderNames() []string
+		SetDefaultProvider(string) error
+		GetDefaultProvider() string
+	}
 }
 
 type styles struct {
@@ -28,6 +33,15 @@ type styles struct {
 func NewUI() *UI {
 	styles := newStyles()
 	return &UI{styles: styles}
+}
+
+func NewUIWithConfig(cfg interface {
+	GetProviderNames() []string
+	SetDefaultProvider(string) error
+	GetDefaultProvider() string
+}) *UI {
+	styles := newStyles()
+	return &UI{styles: styles, cfg: cfg}
 }
 
 func newStyles() *styles {
@@ -161,10 +175,12 @@ func (ui *UI) ShowHelp() {
 用法: ccy-core "[失败的命令]" "[错误日志]"
        ccy-core --init
        ccy-core --config
+       ccy-core --switch
 
 命令:
   --init       输出 Shell 初始化脚本，用于终端集成
   --config     显示配置指南
+  --switch     切换 AI 模型提供商
 
 参数:
   失败的命令  - 执行失败的终端命令
@@ -176,13 +192,14 @@ func (ui *UI) ShowHelp() {
   CCY_MODEL    - LLM 模型名称 (可选, 默认: gpt-4)
 
 Shell 集成:
-  在 ~/.zshrc 或 ~/.bashrc 中添加: eval "$(ccy-core --init)"
-  之后可直接使用 'ccy' 命令，无需手动输入失败的命令和错误
+   在 ~/.zshrc 或 ~/.bashrc 中添加: eval "$(ccy-core --init)"
+   之后可直接使用 'ccy' 命令，无需手动输入失败的命令和错误
 
 配置:
-  开发环境: 在项目根目录创建 .env 文件并设置 CCY_API_KEY
-  生产环境: 使用环境变量 export CCY_API_KEY="your-key"
-  运行 ccy-core --config 查看详细配置指南
+   开发环境: 在项目根目录创建 .env 文件并设置 CCY_API_KEY
+   生产环境: 使用环境变量 export CCY_API_KEY="your-key"
+   运行 ccy-core --config 查看详细配置指南
+   运行 ccy-core --switch 切换 AI 提供商
 `
 
 	fmt.Println(strings.TrimSpace(helpText))
@@ -193,24 +210,64 @@ func (ui *UI) ShowConfigGuide() {
 🔧 ccy 配置指南
 
 开发环境 (推荐用于源码开发):
-  1. 在项目根目录创建 .env 文件
-  2. 添加以下内容:
-     CCY_API_KEY=sk-your-api-key-here
-     CCY_API_BASE=https://api.openai.com/v1  (可选)
-     CCY_MODEL=gpt-4                           (可选)
+   1. 在项目根目录创建 .env 文件
+   2. 添加以下内容:
+      CCY_API_KEY=sk-your-api-key-here
+      CCY_API_BASE=https://api.openai.com/v1  (可选)
+      CCY_MODEL=gpt-4                           (可选)
 
 生产环境 (推荐用于已编译的二进制):
-  在 ~/.zshrc 或 ~/.bashrc 中添加:
-  export CCY_API_KEY="sk-your-api-key-here"
-  export CCY_API_BASE="https://api.openai.com/v1"  (可选)
-  export CCY_MODEL="gpt-4"                       (可选)
+   在 ~/.zshrc 或 ~/.bashrc 中添加:
+   export CCY_API_KEY="sk-your-api-key-here"
+   export CCY_API_BASE="https://api.openai.com/v1"  (可选)
+   export CCY_MODEL="gpt-4"                       (可选)
 
 配置后重启终端或运行:
-  source ~/.zshrc  (或 source ~/.bashrc)
+   source ~/.zshrc  (或 source ~/.bashrc)
 
 验证配置:
-  运行任意命令触发 ccy，如配置正确将显示 AI 分析结果
+   运行任意命令触发 ccy，如配置正确将显示 AI 分析结果
 `
 
 	fmt.Println(strings.TrimSpace(guideText))
+}
+
+func (ui *UI) ShowProviderSwitch() error {
+	if ui.cfg == nil {
+		return fmt.Errorf("config not initialized")
+	}
+
+	var selectedProvider string
+	currentProvider := ui.cfg.GetDefaultProvider()
+
+	providerNames := ui.cfg.GetProviderNames()
+
+	options := make([]huh.Option[string], len(providerNames))
+	for i, name := range providerNames {
+		label := name
+		if name == currentProvider {
+			label = name + " (当前)"
+		}
+		options[i] = huh.NewOption(label, name)
+	}
+
+	err := huh.NewSelect[string]().
+		Title("选择 AI 提供商").
+		Description(fmt.Sprintf("当前: %s", currentProvider)).
+		Options(options...).
+		Value(&selectedProvider).
+		Run()
+
+	if err != nil {
+		return err
+	}
+
+	if selectedProvider != currentProvider {
+		if err := ui.cfg.SetDefaultProvider(selectedProvider); err != nil {
+			return err
+		}
+		ui.ShowSuccess(fmt.Sprintf("已切换到 %s 提供商", selectedProvider))
+	}
+
+	return nil
 }
