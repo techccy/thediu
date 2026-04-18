@@ -10,9 +10,12 @@ builds:
     goos:
       - darwin
       - linux
+      - windows
     goarch:
       - amd64
       - arm64
+    goarm:
+      - '7'
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
     main: ./main.go
@@ -22,6 +25,9 @@ archives:
   - format: tar.gz
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     wrap_in_directory: false
+    format_overrides:
+      - goos: windows
+        format: zip
 
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
@@ -42,3 +48,15 @@ release:
     name: ccy-assistant
   draft: false
   prerelease: auto
+
+nfpms:
+  - file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    homepage: https://github.com/ccy-ai/ccy-assistant
+    description: AI-powered command line assistant
+    maintainer: CCY AI
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - ca-certificates

@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         go-version: ['1.24.x']
     steps:
       - name: Checkout
@@ -43,6 +43,10 @@ jobs:
 
       - name: Build
         run: go build -v -o ccy-core
+
+      - name: Verify static build
+        if: runner.os != 'Windows'
+        run: file ccy-core | grep -q "statically linked" || file ccy-core | grep -q "Mach-O"
 
   lint:
     name: Lint
