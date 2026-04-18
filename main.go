@@ -7,7 +7,6 @@ import (
 
 	"github.com/ccy-ai/ccy-assistant/internal/config"
 	"github.com/ccy-ai/ccy-assistant/internal/context"
-	"github.com/ccy-ai/ccy-assistant/internal/memory"
 	"github.com/ccy-ai/ccy-assistant/internal/provider"
 	"github.com/ccy-ai/ccy-assistant/internal/shellinit"
 	"github.com/ccy-ai/ccy-assistant/internal/tui"
@@ -68,30 +67,6 @@ func main() {
 	var errorMessage string
 	if len(args) > 1 {
 		errorMessage = args[1]
-	}
-
-	mem, err := memory.NewMemory()
-	if err != nil {
-		ui.ShowError(fmt.Sprintf("记忆模块初始化失败: %v", err))
-		os.Exit(1)
-	}
-	defer func() {
-		if closeErr := mem.Close(); closeErr != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to close memory: %v\n", closeErr)
-		}
-	}()
-
-	cachedEntry, err := mem.Find(failedCommand, errorMessage)
-	if err == nil && cachedEntry != nil {
-		ui.ShowResult(fmt.Sprintf("[⚡️ Local Cache] %s", cachedEntry.Error), cachedEntry.FixCommand)
-		if confirmed, _ := ui.AskConfirmation(); confirmed {
-			if err := ui.ExecuteCommand(cachedEntry.FixCommand); err != nil {
-				ui.ShowError(fmt.Sprintf("执行命令失败: %v", err))
-			} else {
-				ui.ShowSuccess("命令执行完成")
-			}
-		}
-		os.Exit(0)
 	}
 
 	providerName, _, err := cfg.GetCurrentProvider()
@@ -186,14 +161,8 @@ Example:
 
 	if confirmed {
 		if err := ui.ExecuteCommand(response.Command); err != nil {
-			if saveErr := mem.Save(failedCommand, errorMessage, response.Command, false); saveErr != nil {
-				fmt.Fprintf(os.Stderr, "warning: failed to save memory: %v\n", saveErr)
-			}
 			ui.ShowError(fmt.Sprintf("执行命令失败: %v", err))
 			os.Exit(1)
-		}
-		if saveErr := mem.Save(failedCommand, errorMessage, response.Command, true); saveErr != nil {
-			fmt.Fprintf(os.Stderr, "warning: failed to save memory: %v\n", saveErr)
 		}
 		ui.ShowSuccess("命令执行完成")
 	} else {
